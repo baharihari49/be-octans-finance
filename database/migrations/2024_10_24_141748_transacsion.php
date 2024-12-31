@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('payment_id')->nullable();
             $table->boolean('is_void')->default(false);
             $table->foreignId('transaction_category_id');
-            $table->foreignId('vendor_id');
+            $table->foreignId('vendor_id')->nullable();
             $table->boolean('is_budget')->default(false);
             $table->foreignId('transaction_type_id');
             $table->timestamps();
