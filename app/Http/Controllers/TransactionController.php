@@ -48,7 +48,7 @@ class TransactionController extends Controller
             default => 'STR-', // Default prefix
         };
 
-        $transactionNumber = $prefix . Helpers::getYear() . Helpers::getMonth() . '-' . str_pad($lastTransactionCount + 1, 6, '0', STR_PAD_LEFT);
+        $transactionNumber = $prefix . Helpers::getYear() . '-' . Helpers::getMonth() . '-' . str_pad($lastTransactionCount + 1, 6, '0', STR_PAD_LEFT);
 
         // Create a new transaction
         $transaction = Transactions::create([
