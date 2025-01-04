@@ -13,7 +13,7 @@ class TransactionCategoryController extends Controller
     {
         return response()->json([
             'status' => 200,
-            'data' => TransactionCategory::all(),
+            'data' => TransactionCategory::with('transactionType')->get(),
             'message' => 'Data retrieved successfully',
         ]);
     }

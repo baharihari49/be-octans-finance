@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\TransactionType;
 
 class TransactionCategory extends Model
 {
@@ -13,4 +15,10 @@ class TransactionCategory extends Model
         'is_show',
         'default',
     ];
+
+
+    public function transactionType(): BelongsTo
+    {
+        return $this->belongsTo(TransactionType::class);
+    }
 }
