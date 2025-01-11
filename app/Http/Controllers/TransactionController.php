@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Transactions;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\Helpers;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
@@ -13,7 +14,7 @@ class TransactionController extends Controller
     {
         return response()->json([
             'status' => 200,
-            'data' => Transactions::with('transactionType')->get(),
+            'data' => Transactions::where('user_id', Auth::user()->id)->with('transactionType')->get(),
             'message' => 'Transaction data retrieved successfully'
         ]);
     }
@@ -39,7 +40,7 @@ class TransactionController extends Controller
         }
 
         // Get the count of transactions for the authenticated user
-        $lastTransactionCount = Transactions::where('user_id', auth()->user()->id)->count();
+        $lastTransactionCount = Transactions::where('user_id', Auth::user()->id)->count();
 
         // Generate a unique transaction number
         $prefix = match ($request->transaction_type_id) {
@@ -58,7 +59,7 @@ class TransactionController extends Controller
             'transaction_category_id' => $request->transaction_category_id,
             'vendor_id' => $request->vendor_id,
             'transaction_type_id' => $request->transaction_type_id,
-            'user_id' => auth()->user()->id, // Use the authenticated user's ID
+            'user_id' => Auth::user()->id, // Use the authenticated user's ID
             'no_transactions' => $transactionNumber, // Save the generated transaction number
         ]);
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('amount');
             $table->foreignId('transaction_category_id');
             $table->foreignId('budgeting_category_id');
-            $table->integer('upser_id');
+            $table->unique('upsert_id');
             $table->integer('adjust');
             $table->timestamps();
         });
