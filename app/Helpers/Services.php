@@ -8,34 +8,34 @@ use App\Models\TransactionCategory;
 use App\Models\BudgetingCategory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use  Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth;
 
 class Services
 {
 
     public static function getValueBudgeting($id)
     {
-        // first, sum all amount in transaction where transaction_type_id is [1,2]
-        $amount = Transactions::whereIn('transaction_type_id', [1, 2])->where('user_id', Auth::user()->id)->sum('amount');
+        // Pertama, jumlahkan semua amount dalam transaksi di mana transaction_type_id adalah [1,2]
+        $amount = Transactions::whereIn('transaction_type_id', [1, 2])
+            ->where('user_id', Auth::user()->id)
+            ->sum('amount');
 
-        // seconds, count al column in transanction category where transaction_type is [1,2]
+        // Kedua, hitung jumlah kolom dalam kategori transaksi di mana transaction_type_id adalah $id
         $categories = TransactionCategory::where('transaction_type_id', $id)->count();
 
-
-        // Third, get value from category_budgeting
-
+        // Ketiga, ambil nilai dari category_budgeting
         $budgeting = BudgetingCategory::where('transaction_type_id', $id)
             ->where('user_id', Auth::user()->id)
-            ->get('value');
+            ->pluck('value'); // Ambil hanya kolom `value`
 
-        // fourth, calculation amount with value of budgetings
+        // Periksa apakah budgeting memiliki elemen sebelum mengakses indeks [0]
+        $budgetingValue = $budgeting->isNotEmpty() ? $budgeting[0] : 0;
 
-        $budgetingFinal = $amount * $budgeting[0]->value / 100;
+        // Keempat, hitung amount dengan nilai dari budgeting
+        $budgetingFinal = ($amount * $budgetingValue) / 100;
 
-
-        // fiveth, divide amount with value of budgetings
-
-        $budgetingFinalResult = $budgetingFinal / $categories;
+        // Kelima, bagi amount dengan jumlah kategori
+        $budgetingFinalResult = $categories > 0 ? $budgetingFinal / $categories : 0;
 
         return $budgetingFinalResult;
     }
@@ -46,32 +46,37 @@ class Services
             ->where('user_id', Auth::id())
             ->pluck('id'); // Ambil hanya id sebagai array
 
-        return $budgetingCategory;
+        return $budgetingCategory ?? [];
     }
 
     public static function storeBudgeting($id)
-    {
+{
+    // Ambil semua budgeting category dalam bentuk array
+    $budgetingCategoryIds = self::getBudgetingCategoryId($id);
 
-        $kategoriTransaksi = TransactionCategory::where('transaction_type_id', $id)->get();
-
-        // Ambil semua budgeting category dalam bentuk array
-        $budgetingCategoryIds = self::getBudgetingCategoryId($id);
-
-        $valueOfBudgeting = $kategoriTransaksi->map(function ($item, $index) use ($budgetingCategoryIds, $id) {
-            return [
-                'upsert_id' =>  intval($index + 1) . $budgetingCategoryIds->first() . intval(Auth::user()->id), // Pastikan upser_id benar-benar unik
-                'transaction_category_id' => $item->id,
-                'amount' => Services::getValueBudgeting($id),
-                'user_id' => Auth::id(),
-                'budgeting_category_id' => $budgetingCategoryIds->first() ?? null, // Ambil ID pertama atau null jika kosong
-                'adjust' => 0
-            ];
-        })->toArray();
-
-        Budgeting::upsert(
-            $valueOfBudgeting,
-            ['upsert_id'],
-            ['amount'],
-        );
+    // Jika budgeting category kosong, hentikan eksekusi fungsi
+    if ($budgetingCategoryIds->isEmpty()) {
+        return; // Tidak melakukan apa-apa
     }
+
+    $kategoriTransaksi = TransactionCategory::where('transaction_type_id', $id)->get();
+
+    $valueOfBudgeting = $kategoriTransaksi->map(function ($item, $index) use ($budgetingCategoryIds, $id) {
+        return [
+            'upsert_id' => intval($index + 1) . ($budgetingCategoryIds->first() ?? 0) . intval(Auth::user()->id), // Pastikan upser_id benar-benar unik
+            'transaction_category_id' => $item->id,
+            'amount' => Services::getValueBudgeting($id),
+            'user_id' => Auth::id(),
+            'budgeting_category_id' => $budgetingCategoryIds->first() ?? null, // Ambil ID pertama atau null jika kosong
+            'adjust' => 0
+        ];
+    })->toArray();
+
+    Budgeting::upsert(
+        $valueOfBudgeting,
+        ['upsert_id'],
+        ['amount'],
+    );
+}
+
 }
