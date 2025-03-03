@@ -12,5 +12,6 @@ class BudgetingCategory extends Model
         'user_id',
         'name',
         'value',
+        'transaction_type_id'
     ];
 }

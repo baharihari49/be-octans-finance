@@ -63,7 +63,7 @@ class BudgetingCategoryController extends Controller
 
         if (($sumOfValue + $request->value) > 100) {
             return response()->json([
-                'status' => 200,
+                'status' => 400,
                 'data' => [],
                 'message' => 'Jumlah maksimal budgeting telah terpenuhi',
             ], 200);
@@ -74,6 +74,7 @@ class BudgetingCategoryController extends Controller
             'user_id' => Auth::id(),
             'name' => $request->name,
             'value' => $request->value,
+            'transaction_type_id' => $request->transaction_type_id,
         ]);
 
         return response()->json([
