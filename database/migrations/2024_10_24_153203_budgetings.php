@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('budgetings', function(Blueprint $table) {
+        Schema::create('budgetings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
             $table->integer('amount');
             $table->foreignId('transaction_category_id');
             $table->foreignId('budgeting_category_id');
-            $table->unique('upsert_id');
+            $table->string('upsert_id')->unique(); // Tambahkan kolom sebelum UNIQUE
             $table->integer('adjust');
             $table->timestamps();
         });
